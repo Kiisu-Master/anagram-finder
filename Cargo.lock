@@ -3,6 +3,14 @@
 version = 3
 
 [[package]]
+name = "anagram-finder"
+version = "0.1.0"
+dependencies = [
+ "dirs",
+ "rayon",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -91,14 +99,6 @@ checksum = "c0ff37bd590ca25063e35af745c343cb7a0271906fb7b37e4813e8f79f00268d"
 dependencies = [
  "bitflags",
  "libc",
-]
-
-[[package]]
-name = "my-rust"
-version = "0.1.0"
-dependencies = [
- "dirs",
- "rayon",
 ]
 
 [[package]]
