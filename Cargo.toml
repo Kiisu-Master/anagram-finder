@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-random_word = { version = "0.4.2", features = ["en","de"] }
+rayon = "1.10"
+dirs = "5.0"

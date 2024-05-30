@@ -1,19 +1,44 @@
-use std::time::Instant;
-use random_word::{self, all, Lang};
+use rayon::prelude::*;
 use std::env::args;
+use std::str::from_utf8;
+use std::time::Instant;
+use std::{fs, io};
+use dirs::home_dir;
 
 fn main() {
-    let lang = Lang::En;
     let args: Vec<_> = args().collect();
-    if !args.len() == 1 {
+    let mut path = home_dir().unwrap().to_str().unwrap().to_owned();
+    // First arg is language like de or en.
+    if args.len() >= 2 {
+        path += format!("\\.anagram-dictionary-{}.txt", args[1]).as_ref();
+    } else {
+        println!("Missing language arg");
         return;
     }
-    let target: &str = args[1].as_ref();
-    let candidates = all(lang);
-    let before = Instant::now();
-    println!("Found anagrams {:?}", target.get_anagrams(candidates));
-    println!("Search duration {}ms", before.elapsed().as_millis());
-    println!("Checked words {}", candidates.len());
+    let file = fs::read(path).unwrap();
+    let candidates: Vec<&str> = from_utf8(&file).unwrap().split("\n").collect();
+    let candidates: &[&str] = candidates.as_ref();
+    if args.len() == 3 {
+        // Handle command line argument only if passed.
+        let target: &str = args[2].as_ref();
+        let before = Instant::now();
+        println!("Found anagrams: {:?}", target.get_anagrams(candidates));
+        println!("Search duration: {}ms", before.elapsed().as_millis());
+        return;
+    }
+    println!("Total word count: {}", candidates.len());
+    // Enter anagram finding input loop.
+    loop {
+        println!("Enter target word:");
+        let mut target = String::new();
+        io::stdin()
+            .read_line(&mut target)
+            .expect("Failed to read line");
+        let target = target.trim();
+        let before = Instant::now();
+        println!("Found anagrams: {:?}", target.get_anagrams(candidates));
+        println!("Search duration: {}ms", before.elapsed().as_millis());
+    }
     // let run_count = 100;
     // let mut my_dur = 0 as f64;
     // let mut ref_dur = 0 as f64;
@@ -49,18 +74,18 @@ trait Anagram {
 impl<T: AsRef<str>> Anagram for T {
     #[inline]
     fn get_anagrams<'a>(&'a self, candidates: &'a [&'a str]) -> Vec<&&str> {
-        let target = self.as_ref().to_lowercase();
+        let target = self.as_ref();
+        let target_lower = target.to_lowercase();
         candidates
-            .iter()
-            .filter(|candidate| candidate.to_lowercase().is_anagram_of(&target))
+            .par_iter()
+            .filter(|candidate| candidate.len() == target.len())
+            .filter(|candidate| **candidate != target)
+            .filter(|candidate| candidate.to_lowercase().is_anagram_of(&target_lower))
             .collect()
     }
     #[inline]
     fn is_anagram_of(&self, candidate: &str) -> bool {
         let target = self.as_ref();
-        if target == candidate || target.len() != candidate.len() {
-            return false;
-        }
         let mut candidate = candidate.to_owned();
         for c in target.chars() {
             match candidate.find(c) {
