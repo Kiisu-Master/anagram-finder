@@ -6,3 +6,10 @@ edition = "2021"
 [dependencies]
 rayon = "1.10"
 dirs = "5.0"
+
+[build]
+rustflags = ["-C", "target-cpu=native"]
+
+[profile.release]
+codegen-units = 1
+lto = "fat"

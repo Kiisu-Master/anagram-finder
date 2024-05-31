@@ -16,19 +16,18 @@ fn main() {
         return;
     }
     let file = fs::read(path).unwrap();
-    let candidates: Vec<&str> = from_utf8(&file).unwrap().split("\n").collect();
-    let candidates: &[&str] = candidates.as_ref();
+    let candidates: Vec<&str> = from_utf8(&file).unwrap().split('\n').collect();
 
     // Handle only command line argument if passed.
     if args.len() == 3 {
         let target: &str = args[2].as_ref();
         let before = Instant::now();
-        println!("Found anagrams: {:?}", target.get_anagrams(candidates));
+        println!("Found anagrams: {:?}", target.get_anagrams(&candidates));
         println!("Search duration: {}ms", before.elapsed().as_millis());
         return;
     }
     println!("Total word count: {}", candidates.len());
-    
+
     // Enter anagram finding input loop.
     loop {
         println!("Enter target word:");
@@ -38,7 +37,7 @@ fn main() {
             .expect("Failed to read line");
         let target = target.trim();
         let before = Instant::now();
-        println!("Found anagrams: {:?}", target.get_anagrams(candidates));
+        println!("Found anagrams: {:?}", target.get_anagrams(&candidates));
         println!("Search duration: {}ms", before.elapsed().as_millis());
     }
 }
@@ -52,13 +51,13 @@ trait Anagram {
 impl<T: AsRef<str>> Anagram for T {
     #[inline]
     fn get_anagrams<'a>(&'a self, candidates: &'a [&'a str]) -> Vec<&&str> {
-        let target = self.as_ref();
-        let target_lower = target.to_lowercase();
+        let target = self.as_ref().to_lowercase();
         candidates
             .par_iter()
             .filter(|candidate| candidate.len() == target.len())
+            .filter(|candidate| candidate.to_lowercase().bytes().sum::<u8>() == target.bytes().sum::<u8>())
+            .filter(|candidate| candidate.to_lowercase().is_anagram_of(&target))
             .filter(|candidate| **candidate != target)
-            .filter(|candidate| candidate.to_lowercase().is_anagram_of(&target_lower))
             .collect()
     }
     #[inline]
