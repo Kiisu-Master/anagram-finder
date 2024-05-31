@@ -36,7 +36,7 @@ fn main() {
         }
         return;
     }
-    println!("Loaded {} wrods in {}ms", candidates.len(), load_time);
+    println!("Loaded {} words in {}ms", candidates.len(), load_time);
     // Enter anagram finding input loop.
     loop {
         println!("Enter target word:");
